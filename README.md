@@ -3,70 +3,49 @@
 
 <img src="laneLines_thirdPass.jpg" width="480" alt="Combined Image" />
 
-When we drive, we use our eyes to decide where to go.  The lines on the road that show us where the lanes are act as our constant reference for where to steer the vehicle.  Naturally, one of the first things we would like to do in developing a self-driving car is to automatically detect lane lines using an algorithm.
+Video showing pipeline in action: https://youtu.be/H0cUdBW49Ao
 
-In this project you will detect lane lines in images using Python and OpenCV.  OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images.  
+###Computer Vision Pipeline:
+
+1. Convert image to HSV space and extract out Value channel, from my experiments the Value channel gave better
+results than the greyscale image, as the Value channel was better for seeing the bright yellow line
+2. Gaussian blur with kernel size of 5
+3. Canny edge detection with a lower threshold of 50 and upper threshold of 150
+4. Extract out region of interest starting 0.6 of the way down in the y direction. The region is roughly a triangle
+with the bottom conners in the left and right bottom corners of the image and peaking to a flat top at x ~ 0.5
+5. Apply hough transform with rho, theta, threshold, min_line_len, max_line_gap equal to 1, 1 degree, 50, 50, 90
+6.Separate lines with negative slope to the left line and positive slope to the right line and exclude lines with
+infinite slope (vertical lines) and lines that are less than 15 degrees from the horizontal plane.
+7. Take the average of all the left lines and again for all the right lines to get the average m and b value for
+both left and right lines
+8. Mix calculated line with prior lane line values to prevent jerky movements
+9. Use calculated m and b values to find lines start and end points going from largest y value to smallest y value
+
+Although my pipeline works well on the videos provided for the project, there are some areas I think it could be improved.
+First, to make this algorithm more robust I would look into adding a curved line model, since I think my current
+algorithm would fail in situations where the lane line is extremeley curved like on some overpass exit ramps. I did
+explore using numpy's polyfit function but could not make it work better than my current pipeline.Second, modifying
+the region of interest selection to be more dynamic would help improve this algorithm, as the lane line are not always 
+going to be within the region I hardcoded. Third, canny edge detection requires parameter tuning, as a result 
+variable condition eg, rain, snow, lighting could mean it needs to be retuned, therefore using a parameterless
+edge detection method would be beneficial in this situation. 
+
+
+### Setting up Environment
 
 **Step 1:** Getting setup with Python
 
-To do this project, you will need Python 3 along with the numpy, matplotlib, and OpenCV libraries, as well as Jupyter Notebook installed. 
-
-We recommend downloading and installing the Anaconda Python 3 distribution from Continuum Analytics because it comes prepackaged with many of the Python dependencies you will need for this and future projects, makes it easy to install OpenCV, and includes Jupyter Notebook.  Beyond that, it is one of the most common Python distributions used in data analytics and machine learning, so a great choice if you're getting started in the field.
-
-Choose the appropriate Python 3 Anaconda install package for your operating system <A HREF="https://www.continuum.io/downloads" target="_blank">here</A>.   Download and install the package.
-
-If you already have Anaconda for Python 2 installed, you can create a separate environment for Python 3 and all the appropriate dependencies with the following command:
-
-`>  conda create --name=yourNewEnvironment python=3 anaconda`
-
-`>  source activate yourNewEnvironment`
+To do this project, you will need Python 3 along with the numpy, matplotlib, and OpenCV libraries, as well as Jupyter Notebook installed. Recommended to use Anaconda environment
 
 **Step 2:** Installing OpenCV
-
-Once you have Anaconda installed, first double check you are in your Python 3 environment:
-
-`>python`    
-`Python 3.5.2 |Anaconda 4.1.1 (x86_64)| (default, Jul  2 2016, 17:52:12)`  
-`[GCC 4.2.1 Compatible Apple LLVM 4.2 (clang-425.0.28)] on darwin`  
-`Type "help", "copyright", "credits" or "license" for more information.`  
-`>>>`   
-(Ctrl-d to exit Python)
-
-run the following commands at the terminal prompt to get OpenCV:
 
 `> pip install pillow`  
 `> conda install -c menpo opencv3=3.1.0`
 
-then to test if OpenCV is installed correctly:
-
-`> python`  
-`>>> import cv2`  
-`>>>`  (i.e. did not get an ImportError)
-
-(Ctrl-d to exit Python)
-
 **Step 3:** Installing moviepy  
-
-We recommend the "moviepy" package for processing video in this project (though you're welcome to use other packages if you prefer).  
-
-To install moviepy run:
 
 `>pip install moviepy`  
 
-and check that the install worked:
-
-`>python`  
-`>>>import moviepy`  
-`>>>`  (i.e. did not get an ImportError)
-
-(Ctrl-d to exit Python)
-
 **Step 4:** Opening the code in a Jupyter Notebook
 
-You will complete this project in a Jupyter notebook.  If you are unfamiliar with Jupyter Notebooks, check out <A HREF="https://www.packtpub.com/books/content/basics-jupyter-notebook-and-python" target="_blank">Cyrille Rossant's Basics of Jupyter Notebook and Python</A> to get started.
-
-Jupyter is an ipython notebook where you can run blocks of code and see results interactively.  All the code for this project is contained in a Jupyter notebook. To start Jupyter in your browser, run the following command at the terminal prompt (be sure you're in your Python 3 environment!):
-
 `> jupyter notebook`
-
-A browser window will appear showing the contents of the current directory.  Click on the file called "P1.ipynb".  Another browser window will appear displaying the notebook.  Follow the instructions in the notebook to complete the project.  
